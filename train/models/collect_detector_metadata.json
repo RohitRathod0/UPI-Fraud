@@ -1,0 +1,26 @@
+{
+  "feature_cols": [
+    "is_collect_request",
+    "collect_unsolicited",
+    "collect_from_unknown",
+    "collect_amount",
+    "collect_frequency_1h",
+    "collect_risk_score",
+    "collect_amount_ratio",
+    "amount_deviation",
+    "time_risk",
+    "payee_new"
+  ],
+  "feature_importance": {
+    "is_collect_request": -3.8641956993943354,
+    "collect_unsolicited": 1.5395482313556508,
+    "collect_from_unknown": 1.5395482313556508,
+    "collect_amount": -0.714272359498951,
+    "collect_frequency_1h": -0.4665693506474608,
+    "collect_risk_score": 1.5373066862304976,
+    "collect_amount_ratio": -0.12353844509261064,
+    "amount_deviation": 0.026923547415903828,
+    "time_risk": 0.009526590368439824,
+    "payee_new": 1.0340493622645863
+  }
+}
