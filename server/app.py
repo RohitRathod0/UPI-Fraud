@@ -5,15 +5,18 @@ FastAPI server with 7 AI agents
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles      
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import time
 from datetime import datetime
 import json
-import os 
+import os
+
 from schemas import TransactionRequest, FraudCheckResponse, ReviewDecision
 from database import SessionLocal, Base, engine, ReviewQueue
+
+# Agents
 from agents.phish_agent import PhishingAgent
 from agents.qr_guard_agent import QuishingAgent
 from agents.collect_sense_agent import CollectRequestAgent
@@ -22,17 +25,20 @@ from agents.trust_score_agent import TrustScoreAgent
 from agents.explainer_agent import ExplainerAgent
 from agents.hitl_manager_agent import HITLManagerAgent
 
-# Create database tables
+# ------------------------------------------------------------------------------
+# DB setup
+# ------------------------------------------------------------------------------
 Base.metadata.create_all(bind=engine)
 
-# Initialize FastAPI app
+# ------------------------------------------------------------------------------
+# App setup
+# ------------------------------------------------------------------------------
 app = FastAPI(
     title="UPI Fraud Detection API",
     description="Pre-transaction fraud detection with Human-in-the-Loop AI agents",
     version="1.0.0"
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,22 +46,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 if not os.path.exists('static'):
     os.makedirs('static')
 
-# Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
-# Initialize all agents
+
+# ------------------------------------------------------------------------------
+# Agents initialization (use consistent model names)
+# ------------------------------------------------------------------------------
 print("Loading ML models...")
 phishing_agent = PhishingAgent(model_path='../models/phishing_detector.pkl')
-quishing_agent = QuishingAgent(model_path='../models/qr_detector.pkl')
-collect_agent = CollectRequestAgent(model_path='../models/collect_detector.pkl')
-malware_agent = MalwareAgent(model_path='../models/malware_detector.pkl')
-trust_score_agent = TrustScoreAgent()
+quishing_agent = QuishingAgent(model_path='../models/quishing_detector.pkl')  # renamed
+collect_agent  = CollectRequestAgent(model_path='../models/collect_request_detector.pkl')  # renamed
+malware_agent  = MalwareAgent(model_path='../models/malware_detector.pkl')
+trust_agent    = TrustScoreAgent()
 explainer_agent = ExplainerAgent()
-hitl_manager = HITLManagerAgent()
+hitl_manager    = HITLManagerAgent()
 
-# Load models
+# Try load (agents already handle load in __init__, but safe to call)
 phishing_agent.load_model()
 quishing_agent.load_model()
 collect_agent.load_model()
@@ -63,7 +72,9 @@ malware_agent.load_model()
 
 print("All models loaded successfully!")
 
-# Database dependency
+# ------------------------------------------------------------------------------
+# DB dependency
+# ------------------------------------------------------------------------------
 def get_db():
     db = SessionLocal()
     try:
@@ -71,6 +82,9 @@ def get_db():
     finally:
         db.close()
 
+# ------------------------------------------------------------------------------
+# Routes
+# ------------------------------------------------------------------------------
 @app.get("/")
 async def root():
     return {
@@ -81,13 +95,12 @@ async def root():
 
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
-    """Health check endpoint"""
     try:
         queue_depth = db.query(ReviewQueue).filter(ReviewQueue.reviewed == False).count()
     except Exception as e:
         print(f"Health DB error: {e}")
         queue_depth = 0
-    
+
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
@@ -101,19 +114,15 @@ async def health_check(db: Session = Depends(get_db)):
     }
 
 @app.post("/api/v1/score_request", response_model=FraudCheckResponse)
-async def score_transaction(
-    request: TransactionRequest,
-    db: Session = Depends(get_db)
-):
+async def score_transaction(request: TransactionRequest, db: Session = Depends(get_db)):
     """
     Score a UPI transaction for fraud risk
-    
     Returns trust score (0-100) and action (ALLOW/WARN/BLOCK/HUMAN_REVIEW)
     """
-    start_time = time.time()
-    
+    t0 = time.time()
+
     try:
-        # Mock transaction object
+        # Construct a simple object the agents can read attributes from
         transaction = type('Transaction', (), {
             'transaction_id': request.transaction_id,
             'amount': request.amount,
@@ -126,48 +135,56 @@ async def score_transaction(
             'transaction_count_24h': 5,
             'avg_transaction_amount_30d': 1000
         })()
-        
-        # Run all 4 fraud detectors
+
         print(f"\n=== Analyzing transaction {request.transaction_id} ===")
-        
-        phishing_result = await phishing_agent.analyze(transaction)
-        print(f"Phishing score: {phishing_result['subscore']:.2f}")
-        
-        quishing_result = await quishing_agent.analyze(transaction)
-        print(f"Quishing score: {quishing_result['subscore']:.2f}")
-        
-        collect_result = await collect_agent.analyze(transaction)
-        print(f"Collect score: {collect_result['subscore']:.2f}")
-        
-        malware_result = await malware_agent.analyze(transaction)
-        print(f"Malware score: {malware_result['subscore']:.2f}")
-        
-        # Aggregate into trust score
-        trust_result = trust_score_agent.compute_trust_score(
-            phishing_score=phishing_result['subscore'],
-            phishing_confidence=phishing_result['confidence'],
-            quishing_score=quishing_result['subscore'],
-            quishing_confidence=quishing_result['confidence'],
-            collect_score=collect_result['subscore'],
-            collect_confidence=collect_result['confidence'],
-            malware_score=malware_result['subscore'],
-            malware_confidence=malware_result['confidence']
-        )
-        
-        trust_score = trust_result['trust_score']
-        action = trust_result['action']
-        aggregate_confidence = trust_result['aggregate_confidence']
-        
-        print(f"Trust Score: {trust_score}, Action: {action}")
-        
-        # Check if human review needed
-        detector_results = {
-            'phishing': phishing_result,
-            'quishing': quishing_result,
-            'collect': collect_result,
-            'malware': malware_result
+
+        # Run agents
+        ph = await phishing_agent.analyze(transaction)
+        print(f"Phishing score: {ph['subscore']:.2f}")
+
+        qr = await quishing_agent.analyze(transaction)
+        print(f"Quishing score: {qr['subscore']:.2f}")
+
+        cr = await collect_agent.analyze(transaction)
+        print(f"Collect score: {cr['subscore']:.2f}")
+
+        mw = await malware_agent.analyze(transaction)
+        print(f"Malware score: {mw['subscore']:.2f}")
+
+        subs = {
+            'phishing': float(ph['subscore']),
+            'quishing': float(qr['subscore']),
+            'collect':  float(cr['subscore']),
+            'malware':  float(mw['subscore'])
         }
-        
+
+        indicators = {
+            'phishing': ph.get('indicators', []),
+            'quishing': qr.get('indicators', []),
+            'collect':  cr.get('indicators', []),
+            'malware':  mw.get('indicators', [])
+        }
+
+        # Aggregate with strict policy gates (TrustScoreAgent handles the gates)
+        agg = trust_agent.aggregate(
+            subs=subs,
+            message=request.message,
+            amount=float(request.amount),
+            indicators_by_agent=indicators
+        )
+
+        trust_score = int(agg['trust_score'])
+        action = agg['action']
+        print(f"Trust Score: {trust_score}, Action: {action}")
+
+        # HITL check (uses final trust and action)
+        detector_results = {
+            'phishing': ph,
+            'quishing': qr,
+            'collect':  cr,
+            'malware':  mw
+        }
+
         hitl_result = await hitl_manager.evaluate(
             transaction_id=request.transaction_id,
             trust_score=trust_score,
@@ -175,66 +192,55 @@ async def score_transaction(
             detector_results=detector_results,
             transaction_amount=request.amount
         )
-        
+
         if hitl_result['human_review_required']:
-            # Add to review queue
-            review_entry = ReviewQueue(
+            entry = ReviewQueue(
                 transaction_id=request.transaction_id,
                 trust_score=float(trust_score),
                 priority=hitl_result['priority'],
                 request_data=json.dumps(request.dict()),
-                subscores=json.dumps({
-                    'phishing': float(phishing_result['subscore']),
-                    'quishing': float(quishing_result['subscore']),
-                    'collect': float(collect_result['subscore']),
-                    'malware': float(malware_result['subscore'])
-                }),
+                subscores=json.dumps(subs),
                 reviewed=False
             )
-            db.add(review_entry)
+            db.add(entry)
             db.commit()
-            
             action = "HUMAN_REVIEW"
             print(f"⚠️  Flagged for human review (Priority: {hitl_result['priority']})")
-        
-        # Generate explanations
-        reasons = explainer_agent.generate_explanation(
-            trust_score=trust_score,
-            detector_results=detector_results,
-            action=action
-        )
-        
-        # Calculate processing time
-        processing_time = int((time.time() - start_time) * 1000)
-        
+
+        # Explanations
+        reasons = agg.get('reasons', [])
+        # If you prefer ExplainerAgent, merge:
+        # reasons = explainer_agent.generate_explanation(trust_score, detector_results, action)
+
+        processing_time = int((time.time() - t0) * 1000)
+
         return FraudCheckResponse(
             transaction_id=request.transaction_id,
-            trust_score=int(trust_score),
+            trust_score=trust_score,
             action=action,
-            confidence=aggregate_confidence,
+            confidence=None,
             human_review_required=hitl_result['human_review_required'],
             priority_level=hitl_result.get('priority'),
             reasons=reasons,
             subscores={
-                'phishing': round(phishing_result['subscore'], 3),
-                'quishing': round(quishing_result['subscore'], 3),
-                'collect': round(collect_result['subscore'], 3),
-                'malware': round(malware_result['subscore'], 3)
+                'phishing': round(subs['phishing'], 3),
+                'quishing': round(subs['quishing'], 3),
+                'collect':  round(subs['collect'], 3),
+                'malware':  round(subs['malware'], 3)
             },
             processing_time_ms=processing_time
         )
-        
+
     except Exception as e:
         print(f"Error processing transaction: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/analyst/review_queue")
 async def get_review_queue(db: Session = Depends(get_db)):
-    """Get all transactions pending human review"""
     queue = db.query(ReviewQueue).filter(ReviewQueue.reviewed == False).order_by(
         ReviewQueue.created_at.desc()
     ).all()
-    
+
     return {
         "queue_depth": len(queue),
         "items": [
@@ -250,24 +256,16 @@ async def get_review_queue(db: Session = Depends(get_db)):
     }
 
 @app.post("/api/v1/analyst/review")
-async def submit_review(
-    decision: ReviewDecision,
-    db: Session = Depends(get_db)
-):
-    """Analyst submits review decision"""
-    queue_item = db.query(ReviewQueue).filter(
-        ReviewQueue.transaction_id == decision.transaction_id
-    ).first()
-    
-    if not queue_item:
+async def submit_review(decision: ReviewDecision, db: Session = Depends(get_db)):
+    item = db.query(ReviewQueue).filter(ReviewQueue.transaction_id == decision.transaction_id).first()
+    if not item:
         raise HTTPException(status_code=404, detail="Transaction not found in review queue")
-    
-    queue_item.reviewed = True
-    queue_item.analyst_id = decision.analyst_id
-    queue_item.decision = decision.decision
-    
+
+    item.reviewed = True
+    item.analyst_id = decision.analyst_id
+    item.decision = decision.decision
     db.commit()
-    
+
     return {
         "message": "Review submitted successfully",
         "transaction_id": decision.transaction_id,
@@ -276,9 +274,7 @@ async def submit_review(
 
 @app.get("/pay")
 async def payment_ui():
-    """Serve the payment UI"""
     return FileResponse('static/upi_payment.html')
-   
 
 if __name__ == "__main__":
     import uvicorn
