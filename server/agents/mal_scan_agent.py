@@ -93,9 +93,9 @@ class MalwareAgent:
 
     def _indicators(self, f: Dict[str, float], proba: float):
         ind = []
-        if f['keylogger_indicators'] > 0: ind.append("⚠️ Credential text present (OTP/PIN/password)")
-        if f['sms_interception_risk'] > 0: ind.append("⚠️ Possible SMS/OTP interception risk")
-        if f['unusual_time'] > 0: ind.append("⚠️ Transaction at unusual hour")
-        if f['amount'] >= 50000: ind.append("⚠️ High-value transaction")
-        if not ind: ind.append("✓ No significant malware indicators")
+        if f['keylogger_indicators'] > 0: ind.append("Credential text present (OTP/PIN/password)")
+        if f['sms_interception_risk'] > 0: ind.append("Possible SMS/OTP interception risk")
+        if f['unusual_time'] > 0: ind.append("Transaction at unusual hour")
+        if f['amount'] >= 50000: ind.append("High-value transaction")
+        if not ind: ind.append("No significant malware indicators")
         return ind

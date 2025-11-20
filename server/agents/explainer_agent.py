@@ -26,15 +26,15 @@ class ExplainerAgent:
         # Overall risk assessment
         risk_level = self._get_risk_level(trust_score)
         if trust_score >= 80:
-            reasons.append(f"✓ Transaction appears safe (Risk Level: {risk_level})")
+            reasons.append(f"Transaction appears safe (Risk Level: {risk_level})")
         elif trust_score >= 65:
-            reasons.append(f"⚠ Transaction has low-medium risk (Risk Level: {risk_level})")
+            reasons.append(f"Transaction has low-medium risk (Risk Level: {risk_level})")
         elif trust_score >= 45:
-            reasons.append(f"⚠ Transaction has medium risk (Risk Level: {risk_level})")
+            reasons.append(f"Transaction has medium risk (Risk Level: {risk_level})")
         elif trust_score >= 30:
-            reasons.append(f"⛔ Transaction has high risk (Risk Level: {risk_level})")
+            reasons.append(f"Transaction has high risk (Risk Level: {risk_level})")
         else:
-            reasons.append(f"⛔ Transaction has critical risk (Risk Level: {risk_level})")
+            reasons.append(f"Transaction has critical risk (Risk Level: {risk_level})")
         
         # Add specific detector findings with importance
         detector_risks = []
@@ -57,10 +57,10 @@ class ExplainerAgent:
         # Add top risk detectors
         for det in detector_risks[:3]:  # Top 3 riskiest
             if det['score'] > 70:
-                reasons.append(f"⛔ {det['name']}: {det['score']:.0f}% risk")
+                reasons.append(f"{det['name']}: {det['score']:.0f}% risk")
                 reasons.extend([f"  • {ind}" for ind in det['indicators'][:2]])
             elif det['score'] > 40:
-                reasons.append(f"⚠ {det['name']}: {det['score']:.0f}% risk")
+                reasons.append(f"{det['name']}: {det['score']:.0f}% risk")
                 if det['indicators']:
                     reasons.append(f"  • {det['indicators'][0]}")
         
@@ -68,9 +68,9 @@ class ExplainerAgent:
         if transaction_data:
             amount = transaction_data.get('amount', 0)
             if amount > 50000:
-                reasons.append(f"⚠ High transaction amount: ₹{amount:,.0f}")
+                reasons.append(f"High transaction amount: ₹{amount:,.0f}")
             if transaction_data.get('payee_new', 0) == 1:
-                reasons.append("⚠ Payee is new/unknown to you")
+                reasons.append("Payee is new/unknown to you")
         
         # Add action-specific guidance
         if action == "BLOCK":
@@ -80,7 +80,7 @@ class ExplainerAgent:
             reasons.append("⚠️ Proceed with CAUTION")
             reasons.append("→ Verify payee details before confirming")
         elif action == "ALLOW":
-            reasons.append("✓ Safe to proceed with payment")
+            reasons.append("Safe to proceed with payment")
         elif action == "HUMAN_REVIEW":
             reasons.append("👤 Under review by security team")
             reasons.append("→ Decision typically within 5 minutes")

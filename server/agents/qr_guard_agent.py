@@ -120,11 +120,11 @@ class QuishingAgent:
 
     def _indicators(self, f: Dict[str, float], proba: float):
         ind = []
-        if f['is_qr_txn'] > 0: ind.append("⚠️ QR-based transaction")
-        if f['mentions_qr'] > 0: ind.append("⚠️ Message mentions QR/scan/code")
-        if f['prize_lang'] > 0: ind.append("⚠️ Prize/reward scam language")
-        if f['offer_lang'] > 0: ind.append("⚠️ Suspicious offer/discount")
-        if f['url_present'] > 0: ind.append("⚠️ URL present (possible redirect)")
-        if f['urgent_qr'] > 0: ind.append("⚠️ Urgency in QR context")
-        if not ind: ind.append("✓ No significant quishing indicators")
+        if f['is_qr_txn'] > 0: ind.append("QR-based transaction")
+        if f['mentions_qr'] > 0: ind.append("Message mentions QR/scan/code")
+        if f['prize_lang'] > 0: ind.append("Prize/reward scam language")
+        if f['offer_lang'] > 0: ind.append("Suspicious offer/discount")
+        if f['url_present'] > 0: ind.append("URL present (possible redirect)")
+        if f['urgent_qr'] > 0: ind.append("Urgency in QR context")
+        if not ind: ind.append("No significant quishing indicators")
         return ind

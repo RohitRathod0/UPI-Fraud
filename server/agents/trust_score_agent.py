@@ -42,7 +42,7 @@ class TrustScoreAgent:
         # Collect indicators from agents (surface anything flagged)
         for agent_name, indicators in indicators_by_agent.items():
             for ind in indicators:
-                if '⚠️' in ind or 'policy gate' in ind.lower() or 'detected' in ind.lower():
+                if 'policy gate' in ind.lower() or 'detected' in ind.lower() or 'warning' in ind.lower() or 'risk' in ind.lower():
                     reasons.append(f"{agent_name.capitalize()}: {ind}")
 
         # Apply strict policy gates
@@ -177,27 +177,27 @@ class TrustScoreAgent:
         if malware_risk_pct >= 8.0:  # 8% or higher malware risk
             agg['action'] = 'BLOCK'
             agg['trust_score'] = min(agg['trust_score'], 30)
-            reasons.append(f'🚨 CRITICAL: High malware risk detected ({malware_risk_pct:.1f}%) - Transaction blocked')
+            reasons.append(f'CRITICAL: High malware risk detected ({malware_risk_pct:.1f}%) - Transaction blocked')
         elif malware_risk_pct >= 5.0:  # 5-8% malware risk
             agg['action'] = 'HUMAN_REVIEW'
             agg['trust_score'] = min(agg['trust_score'], 40)
-            reasons.append(f'⚠️ WARNING: Moderate malware risk detected ({malware_risk_pct:.1f}%) - Requires review')
+            reasons.append(f'WARNING: Moderate malware risk detected ({malware_risk_pct:.1f}%) - Requires review')
         elif malware_risk_pct >= 3.0:  # 3-5% malware risk
             if agg['action'] == 'ALLOW':
                 agg['action'] = 'WARN'
                 agg['trust_score'] = min(agg['trust_score'], 65)
-                reasons.append(f'⚠️ CAUTION: Low malware risk detected ({malware_risk_pct:.1f}%) - Proceed with caution')
+                reasons.append(f'CAUTION: Low malware risk detected ({malware_risk_pct:.1f}%) - Proceed with caution')
 
         # 10) Check malware indicators from agent
         malware_indicators = ind.get('malware', [])
-        has_malware_indicators = any('⚠️' in str(ind) or 'credential' in str(ind).lower() or 'otp' in str(ind).lower() 
+        has_malware_indicators = any('credential' in str(ind).lower() or 'otp' in str(ind).lower() 
                                      for ind in malware_indicators)
         
         if has_malware_indicators and malware_risk_pct >= 3.0:
             if agg['action'] == 'ALLOW':
                 agg['action'] = 'WARN'
                 agg['trust_score'] = min(agg['trust_score'], 70)
-                reasons.append('⚠️ Malware indicators detected (OTP/credential text) - Additional verification recommended')
+                reasons.append('Malware indicators detected (OTP/credential text) - Additional verification recommended')
 
         # Merge
         agg['reasons'].extend(reasons)

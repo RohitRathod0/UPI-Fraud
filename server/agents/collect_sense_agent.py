@@ -117,10 +117,10 @@ class CollectRequestAgent:
 
     def _indicators(self, f: Dict[str, float], proba: float):
         ind = []
-        if f['is_collect'] > 0: ind.append("⚠️ Collect payment request")
-        if f['threats'] > 0: ind.append("⚠️ Threatening/legal language")
-        if f['urgency'] > 0: ind.append("⚠️ Urgency/pressure")
-        if f['dues'] > 0: ind.append("⚠️ Claims dues/outstanding")
-        if f['authority'] > 0: ind.append("⚠️ Authority/department impersonation")
-        if not ind: ind.append("✓ No significant collect fraud indicators")
+        if f['is_collect'] > 0: ind.append("Collect payment request")
+        if f['threats'] > 0: ind.append("Threatening/legal language")
+        if f['urgency'] > 0: ind.append("Urgency/pressure")
+        if f['dues'] > 0: ind.append("Claims dues/outstanding")
+        if f['authority'] > 0: ind.append("Authority/department impersonation")
+        if not ind: ind.append("No significant collect fraud indicators")
         return ind

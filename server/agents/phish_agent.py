@@ -99,10 +99,10 @@ class PhishingAgent:
 
     def _indicators(self, f: Dict[str, float], proba: float):
         ind = []
-        if f['has_cred'] > 0: ind.append("⚠️ Requests credentials (OTP/PIN/password)")
-        if f['urgent_flag'] > 0: ind.append("⚠️ Urgent/threatening language")
-        if f['contains_url'] > 0: ind.append("⚠️ Message contains URL/link")
-        if f['mimics_bank'] > 0: ind.append("⚠️ Mimics bank/official communication")
-        if f['has_typosquat'] > 0: ind.append("⚠️ Suspicious payee naming (security/verify)")
-        if not ind: ind.append("✓ No significant phishing indicators")
+        if f['has_cred'] > 0: ind.append("Requests credentials (OTP/PIN/password)")
+        if f['urgent_flag'] > 0: ind.append("Urgent/threatening language")
+        if f['contains_url'] > 0: ind.append("Message contains URL/link")
+        if f['mimics_bank'] > 0: ind.append("Mimics bank/official communication")
+        if f['has_typosquat'] > 0: ind.append("Suspicious payee naming (security/verify)")
+        if not ind: ind.append("No significant phishing indicators")
         return ind
