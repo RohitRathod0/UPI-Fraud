@@ -48,10 +48,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if not os.path.exists('static'):
-    os.makedirs('static')
+# Handle static files path (works from both root and server directory)
+static_dir = 'static' if os.path.exists('static') else 'server/static'
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # ------------------------------------------------------------------------------
 # Agents initialization (use config for model paths)
@@ -94,7 +96,8 @@ def get_db():
 @app.get("/")
 async def root():
     """Landing page for the UPI Fraud Detection System"""
-    return FileResponse('static/index.html')
+    static_dir = 'static' if os.path.exists('static') else 'server/static'
+    return FileResponse(os.path.join(static_dir, 'index.html'))
 
 @app.get("/api")
 async def api_info():
@@ -313,7 +316,8 @@ async def submit_review(decision: ReviewDecision, db: Session = Depends(get_db))
 
 @app.get("/pay")
 async def payment_ui():
-    return FileResponse('static/upi_payment.html')
+    static_dir = 'static' if os.path.exists('static') else 'server/static'
+    return FileResponse(os.path.join(static_dir, 'upi_payment.html'))
 
 if __name__ == "__main__":
     import uvicorn
