@@ -74,16 +74,16 @@ class ExplainerAgent:
         
         # Add action-specific guidance
         if action == "BLOCK":
-            reasons.append("🔒 Transaction BLOCKED for your protection")
-            reasons.append("→ If legitimate, contact customer support with transaction ID")
+            reasons.append("Transaction BLOCKED for your protection")
+            reasons.append("If legitimate, contact customer support with transaction ID")
         elif action == "WARN":
-            reasons.append("⚠️ Proceed with CAUTION")
-            reasons.append("→ Verify payee details before confirming")
+            reasons.append("Proceed with CAUTION")
+            reasons.append("Verify payee details before confirming")
         elif action == "ALLOW":
             reasons.append("Safe to proceed with payment")
         elif action == "HUMAN_REVIEW":
-            reasons.append("👤 Under review by security team")
-            reasons.append("→ Decision typically within 5 minutes")
+            reasons.append("Under review by security team")
+            reasons.append("Decision typically within 5 minutes")
         
         return reasons
     
