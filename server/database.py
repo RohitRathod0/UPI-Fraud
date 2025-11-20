@@ -11,10 +11,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Use SQLite (no PostgreSQL needed)
+# Support both SQLite (local) and PostgreSQL (production/Render)
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./upi_fraud_detection.db')
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
+# Handle PostgreSQL connection string format from Render
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+# Create engine with appropriate connection args
+if "sqlite" in DATABASE_URL:
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # PostgreSQL connection
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

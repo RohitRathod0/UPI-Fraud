@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: upi-fraud-detection-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd server && uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: upi-fraud-db
+          property: connectionString
+      - key: MODEL_DIR
+        value: ./server/models
+      - key: HITL_ENABLED
+        value: true
+      - key: LOG_LEVEL
+        value: INFO
+
+databases:
+  - name: upi-fraud-db
+    databaseName: upi_fraud_detection
+    user: upi_fraud_user
+    plan: free
+

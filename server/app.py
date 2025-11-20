@@ -15,6 +15,7 @@ import os
 
 from schemas import TransactionRequest, FraudCheckResponse, ReviewDecision
 from database import SessionLocal, Base, engine, ReviewQueue
+from config import Config
 
 # Agents
 from agents.phish_agent import PhishingAgent
@@ -53,13 +54,18 @@ if not os.path.exists('static'):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ------------------------------------------------------------------------------
-# Agents initialization (use consistent model names)
+# Agents initialization (use config for model paths)
 # ------------------------------------------------------------------------------
 print("Loading ML models...")
-phishing_agent = PhishingAgent(model_path='../models/phishing_detector.pkl')
-quishing_agent = QuishingAgent(model_path='../models/quishing_detector.pkl')  # renamed
-collect_agent  = CollectRequestAgent(model_path='../models/collect_request_detector.pkl')  # renamed
-malware_agent  = MalwareAgent(model_path='../models/malware_detector.pkl')
+# Use config paths, fallback to relative paths for local development
+model_dir = Config.MODEL_DIR if os.path.exists(Config.MODEL_DIR) else './models'
+if not os.path.exists(model_dir):
+    model_dir = '../models'  # Fallback for local dev
+
+phishing_agent = PhishingAgent(model_path=os.path.join(model_dir, 'phishing_detector.pkl'))
+quishing_agent = QuishingAgent(model_path=os.path.join(model_dir, 'qr_detector.pkl'))
+collect_agent  = CollectRequestAgent(model_path=os.path.join(model_dir, 'collect_detector.pkl'))
+malware_agent  = MalwareAgent(model_path=os.path.join(model_dir, 'malware_detector.pkl'))
 trust_agent    = TrustScoreAgent()
 explainer_agent = ExplainerAgent()
 hitl_manager    = HITLManagerAgent()

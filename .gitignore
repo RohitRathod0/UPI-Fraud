@@ -15,6 +15,8 @@ build/
 *.pkl
 *.h5
 *.joblib
+# Exception: Allow models in server/models/ for deployment
+!server/models/*.pkl
 
 # Data files
 *.csv
@@ -53,3 +55,10 @@ htmlcov/
 # Temporary files
 *.tmp
 *.bak
+.gradle
+.idea
+*.iml
+*.apk
+/build
+/local.properties
+.DS_Store
