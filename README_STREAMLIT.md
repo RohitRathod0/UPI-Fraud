@@ -1,17 +1,14 @@
 # SecureUPI - Streamlit Deployment
 
-## 🚀 Quick Start
+## 🚀 Quick Deploy
 
-This project is ready for deployment on Streamlit Cloud.
+This project is **ready for Streamlit Cloud deployment**.
 
-### **Deploy Now:**
+### Deploy in 3 Steps:
 
-1. Go to https://streamlit.io/cloud
-2. Sign in with GitHub
-3. Click "New app"
-4. Select repository: `UPI-Fraud`
-5. Main file: `streamlit_app.py`
-6. Click "Deploy"
+1. **Go to**: https://streamlit.io/cloud
+2. **Click**: "New app"
+3. **Select**: Repository `UPI-Fraud`, Main file: `streamlit_app.py`
 
 ---
 
@@ -46,21 +43,21 @@ This project is ready for deployment on Streamlit Cloud.
 │   └── config.toml          # Streamlit config
 └── server/
     ├── models/              # ML models (.pkl files)
-    └── agents/             # Agent modules
+    └── agents/              # Agent modules
 ```
 
 ---
 
 ## 🔧 Local Development
 
-### **Run Locally:**
+### Run Locally:
 
 ```bash
 pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
-App will open at: http://localhost:8501
+App opens at: **http://localhost:8501**
 
 ---
 
@@ -86,19 +83,20 @@ App will open at: http://localhost:8501
 
 ## 📦 Dependencies
 
-All dependencies are listed in `requirements.txt`:
+All dependencies in `requirements.txt`:
 - Streamlit
 - Plotly
 - Scikit-learn
 - XGBoost
 - LightGBM
+- Joblib
 - And more...
 
 ---
 
 ## ✅ Deployment Status
 
-**Ready for Streamlit Cloud!**
+**READY FOR STREAMLIT CLOUD!**
 
 All files are prepared and tested. Just deploy using the steps above.
 
@@ -114,9 +112,7 @@ This project is for demonstration purposes.
 
 Built with:
 - Streamlit
-- FastAPI (backend)
 - XGBoost, Random Forest, Logistic Regression
 - Advanced Machine Learning techniques
 
-**Deploy now and protect millions of transactions! 🛡️**
-
+**Deploy now and protect millions of transactions!**
