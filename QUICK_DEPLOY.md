@@ -46,3 +46,5 @@ curl https://your-app-name.up.railway.app/health
 
 **That's it!** Your API is live! 🎉
 
+
+
