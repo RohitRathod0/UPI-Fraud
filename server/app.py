@@ -93,10 +93,22 @@ def get_db():
 # ------------------------------------------------------------------------------
 @app.get("/")
 async def root():
+    """Landing page for the UPI Fraud Detection System"""
+    return FileResponse('static/index.html')
+
+@app.get("/api")
+async def api_info():
+    """API information endpoint"""
     return {
         "message": "UPI Fraud Detection API",
         "version": "1.0.0",
-        "status": "online"
+        "status": "online",
+        "endpoints": {
+            "health": "/health",
+            "score_request": "/api/v1/score_request",
+            "review_queue": "/api/v1/analyst/review_queue",
+            "demo": "/pay"
+        }
     }
 
 @app.get("/health")

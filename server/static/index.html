@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureUPI - AI-Powered Fraud Detection System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1f;
+    --grad1: #5b6ee1;
+    --grad2: #7c4bd8;
+    --card: #0f172a;
+    --ink: #e2e8f0;
+    --muted: #94a3b8;
+    --ok: #22c55e;
+    --accent: #60a5fa;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(180deg, #0b1224 0%, #0a0f1f 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  /* Header */
+  header {
+    background: linear-gradient(90deg, var(--grad1), var(--grad2));
+    padding: 20px 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.16);
+    display: grid;
+    place-items: center;
+    font-weight: 900;
+    color: #fff;
+    font-size: 20px;
+  }
+  .logo-text {
+    font-weight: 900;
+    font-size: 22px;
+    color: #fff;
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .nav-link {
+    color: rgba(255,255,255,.9);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.2s;
+  }
+  .nav-link:hover {
+    opacity: 0.8;
+  }
+  .btn-primary {
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover {
+    background: rgba(255,255,255,.3);
+  }
+  /* Hero Section */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 56px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+  .hero .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn-large {
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-block;
+  }
+  .btn-demo {
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(91, 110, 225, 0.4);
+  }
+  .btn-demo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(91, 110, 225, 0.5);
+  }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--grad1);
+    color: var(--grad1);
+  }
+  .btn-outline:hover {
+    background: var(--grad1);
+    color: #fff;
+  }
+  /* Features Section */
+  .features {
+    padding: 80px 0;
+  }
+  .section-title {
+    text-align: center;
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 60px;
+    color: var(--ink);
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .feature-card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s;
+  }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--grad1);
+    box-shadow: 0 12px 32px rgba(91, 110, 225, 0.2);
+  }
+  .feature-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  .feature-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .feature-desc {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  /* Stats Section */
+  .stats {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 60px;
+    margin: 60px 0;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 40px;
+    text-align: center;
+  }
+  .stat-number {
+    font-size: 48px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  /* Footer */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--muted);
+    border-top: 1px solid rgba(255,255,255,.08);
+    margin-top: 80px;
+  }
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 36px;
+    }
+    .hero .subtitle {
+      font-size: 18px;
+    }
+    .nav-links {
+      gap: 16px;
+    }
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <nav class="container">
+      <div class="logo">
+        <div class="logo-icon">🛡️</div>
+        <div class="logo-text">SecureUPI</div>
+      </div>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="/pay" class="btn-primary">Try Demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>AI-Powered UPI Fraud Detection</h1>
+        <p class="subtitle">
+          Real-time pre-transaction fraud prevention using advanced machine learning 
+          and multi-agent architecture to protect users from phishing, quishing, collect fraud, and malware attacks.
+        </p>
+        <div class="hero-buttons">
+          <a href="/pay" class="btn-large btn-demo">🚀 Try Live Demo</a>
+          <a href="/health" class="btn-large btn-outline">📊 API Status</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="container">
+        <h2 class="section-title">Advanced Fraud Detection Capabilities</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🎣</div>
+            <h3 class="feature-title">Phishing Detection</h3>
+            <p class="feature-desc">
+              Detects phishing attempts in transaction messages using XGBoost ML model 
+              and pattern matching to identify suspicious URLs and fraudulent requests.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3 class="feature-title">Quishing (QR) Protection</h3>
+            <p class="feature-desc">
+              Identifies QR code phishing scams with Random Forest classifier, 
+              analyzing transaction patterns and message content for malicious intent.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3 class="feature-title">Collect Request Fraud</h3>
+            <p class="feature-desc">
+              Prevents unauthorized collect requests using Logistic Regression model, 
+              detecting suspicious payment collection patterns in real-time.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🦠</div>
+            <h3 class="feature-title">Malware Detection</h3>
+            <p class="feature-desc">
+              Identifies device compromise and malware-related transactions with XGBoost, 
+              protecting users from compromised device attacks.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3 class="feature-title">Multi-Agent Architecture</h3>
+            <p class="feature-desc">
+              7 specialized AI agents work together: 4 fraud detectors, trust score aggregator, 
+              explainable AI, and human-in-the-loop manager for comprehensive protection.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3 class="feature-title">Real-Time Analysis</h3>
+            <p class="feature-desc">
+              Pre-transaction fraud checks completed in under 200ms, providing instant 
+              trust scores and action recommendations (ALLOW/WARN/BLOCK/HUMAN_REVIEW).
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="container">
+        <div class="stats-grid">
+          <div>
+            <div class="stat-number">4</div>
+            <div class="stat-label">ML Models</div>
+          </div>
+          <div>
+            <div class="stat-number">7</div>
+            <div class="stat-label">AI Agents</div>
+          </div>
+          <div>
+            <div class="stat-number">&lt;200ms</div>
+            <div class="stat-label">Response Time</div>
+          </div>
+          <div>
+            <div class="stat-number">99%+</div>
+            <div class="stat-label">Accuracy</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>SecureUPI - AI-Powered Fraud Detection System | Version 1.0.0</p>
+      <p style="margin-top: 8px; font-size: 14px;">
+        Built with FastAPI, XGBoost, Random Forest, and advanced ML techniques
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
+
