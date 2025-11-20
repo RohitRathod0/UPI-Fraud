@@ -1,5 +1,5 @@
 #!/bin/bash
-# Startup script for Render deployment
+# Startup script for deployment (Railway, Render, etc.)
 
 echo "Starting UPI Fraud Detection API..."
 

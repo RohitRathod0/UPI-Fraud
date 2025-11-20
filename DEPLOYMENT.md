@@ -1,126 +1,92 @@
-# 🚀 Deployment Guide: Render.com
+# 🚀 Deployment Guide: Railway.app
 
-This guide will walk you through deploying your UPI Fraud Detection API on Render.
+**Free Tier: $5 credit/month, No credit card required initially!**
 
-## Prerequisites
+Railway is perfect for deploying your FastAPI application with ML models. It's simple, fast, and has a generous free tier.
 
-1. **GitHub Account** - Your code needs to be in a GitHub repository
-2. **Render Account** - Sign up at [render.com](https://render.com) (free tier available)
-3. **Trained Models** - Make sure your `.pkl` model files are committed to the repository
+## 🎯 Why Railway?
 
-## Step 1: Prepare Your Repository
+✅ **$5 free credit/month** - Enough for small projects  
+✅ **No credit card required** initially  
+✅ **Automatic deployments** from GitHub  
+✅ **PostgreSQL included** - Easy database setup  
+✅ **Simple configuration** - Just connect and deploy  
+✅ **Fast builds** - Usually 2-3 minutes  
 
-### 1.1 Ensure Models are in the Repository
+## 📋 Prerequisites
 
-Make sure your trained models are in the `server/models/` directory:
-- `phishing_detector.pkl`
-- `qr_detector.pkl` (or `quishing_detector.pkl`)
-- `collect_detector.pkl`
-- `malware_detector.pkl`
+1. **GitHub Account** - Your code must be in a GitHub repository
+2. **Railway Account** - Sign up at [railway.app](https://railway.app) (free)
+3. **Trained Models** - Models should be in `server/models/` directory
 
-### 1.2 Verify File Structure
+## 🚀 Quick Deployment Steps
 
-Your repository should have this structure:
-```
-finanace/
-├── server/
-│   ├── app.py
-│   ├── models/
-│   │   ├── phishing_detector.pkl
-│   │   ├── qr_detector.pkl
-│   │   ├── collect_detector.pkl
-│   │   └── malware_detector.pkl
-│   ├── agents/
-│   ├── static/
-│   └── ...
-├── requirements.txt
-├── render.yaml
-└── README.md
-```
+### Step 1: Sign Up for Railway
 
-### 1.3 Commit and Push to GitHub
+1. Go to [railway.app](https://railway.app)
+2. Click **"Start a New Project"**
+3. Sign up with GitHub (recommended) or email
+4. Authorize Railway to access your GitHub repositories
+
+### Step 2: Create New Project
+
+1. Click **"New Project"**
+2. Select **"Deploy from GitHub repo"**
+3. Choose your repository: `UPI-Fraud` (or your repo name)
+4. Railway will automatically detect it's a Python project
+
+### Step 3: Configure Service
+
+Railway will auto-detect your project, but verify these settings:
+
+**Settings to check:**
+- **Root Directory**: Leave empty (or set to project root)
+- **Build Command**: `pip install -r requirements.txt` (auto-detected)
+- **Start Command**: `cd server && uvicorn app:app --host 0.0.0.0 --port $PORT` (auto-detected)
+
+**If not auto-detected, add manually:**
+- Go to your service → **Settings** → **Deploy**
+- Set **Start Command**: `cd server && uvicorn app:app --host 0.0.0.0 --port $PORT`
+
+### Step 4: Add Environment Variables
+
+Go to your service → **Variables** tab, add:
+
+| Variable | Value | Required |
+|----------|-------|----------|
+| `MODEL_DIR` | `./server/models` | ✅ Yes |
+| `HITL_ENABLED` | `true` | Optional |
+| `LOG_LEVEL` | `INFO` | Optional |
+| `PYTHON_VERSION` | `3.11.0` | Optional |
+
+**Note**: `DATABASE_URL` will be added automatically when you create a database.
+
+### Step 5: Create PostgreSQL Database
+
+1. In your Railway project, click **"+ New"**
+2. Select **"Database"** → **"Add PostgreSQL"**
+3. Railway automatically:
+   - Creates the database
+   - Adds `DATABASE_URL` environment variable
+   - Links it to your service
+
+**That's it!** Railway will start deploying automatically.
+
+### Step 6: Wait for Deployment
+
+1. Watch the build logs in Railway dashboard
+2. Build takes 2-5 minutes
+3. Once deployed, you'll get a URL like: `https://your-app-name.up.railway.app`
+
+## ✅ Verify Deployment
+
+### Test Health Endpoint
 
 ```bash
-git add .
-git commit -m "Prepare for Render deployment"
-git push origin main
+curl https://your-app-name.up.railway.app/health
 ```
 
-## Step 2: Create Render Account
-
-1. Go to [render.com](https://render.com)
-2. Click **"Get Started for Free"**
-3. Sign up with your GitHub account (recommended) or email
-
-## Step 3: Deploy Using render.yaml (Recommended)
-
-### 3.1 Create New Web Service
-
-1. In Render dashboard, click **"New +"** → **"Blueprint"**
-2. Connect your GitHub repository
-3. Render will automatically detect `render.yaml`
-4. Click **"Apply"**
-
-### 3.2 Manual Setup (Alternative)
-
-If you prefer manual setup:
-
-1. Click **"New +"** → **"Web Service"**
-2. Connect your GitHub repository
-3. Configure:
-   - **Name**: `upi-fraud-detection-api`
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `cd server && uvicorn app:app --host 0.0.0.0 --port $PORT`
-   - **Root Directory**: Leave empty (or set to project root)
-
-## Step 4: Create PostgreSQL Database
-
-1. In Render dashboard, click **"New +"** → **"PostgreSQL"**
-2. Configure:
-   - **Name**: `upi-fraud-db`
-   - **Database**: `upi_fraud_detection`
-   - **User**: `upi_fraud_user`
-   - **Plan**: Free (or Starter for production)
-3. Click **"Create Database"**
-4. Copy the **Internal Database URL** (you'll need this)
-
-## Step 5: Configure Environment Variables
-
-In your Render service settings, add these environment variables:
-
-### Required Variables:
-- `DATABASE_URL` - Automatically set if using render.yaml blueprint
-- `MODEL_DIR` - Set to `./server/models`
-- `PYTHON_VERSION` - Set to `3.11.0`
-
-### Optional Variables:
-- `HITL_ENABLED` - `true` (default)
-- `LOG_LEVEL` - `INFO` (default)
-- `TRUST_SCORE_ALLOW_THRESHOLD` - `65` (default)
-- `TRUST_SCORE_WARN_THRESHOLD` - `45` (default)
-
-### How to Add Environment Variables:
-
-1. Go to your service in Render dashboard
-2. Click **"Environment"** tab
-3. Click **"Add Environment Variable"**
-4. Add each variable and its value
-5. Click **"Save Changes"**
-
-## Step 6: Deploy
-
-1. Render will automatically start building and deploying
-2. Watch the build logs for any errors
-3. Once deployed, you'll get a URL like: `https://upi-fraud-detection-api.onrender.com`
-
-## Step 7: Verify Deployment
-
-### 7.1 Check Health Endpoint
-
-Visit: `https://your-app-name.onrender.com/health`
-
-You should see:
+Should return:
 ```json
 {
   "status": "healthy",
@@ -135,25 +101,10 @@ You should see:
 }
 ```
 
-### 7.2 Test API Endpoint
+### Test API
 
 ```bash
-curl https://your-app-name.onrender.com/
-```
-
-Should return:
-```json
-{
-  "message": "UPI Fraud Detection API",
-  "version": "1.0.0",
-  "status": "online"
-}
-```
-
-### 7.3 Test Fraud Detection
-
-```bash
-curl -X POST https://your-app-name.onrender.com/api/v1/score_request \
+curl -X POST https://your-app-name.up.railway.app/api/v1/score_request \
   -H "Content-Type: application/json" \
   -d '{
     "transaction_id": "test-123",
@@ -161,94 +112,102 @@ curl -X POST https://your-app-name.onrender.com/api/v1/score_request \
     "payer_vpa": "user@paytm",
     "payee_vpa": "merchant@upi",
     "message": "Payment for services",
-    "payee_new": false,
-    "transaction_type": "PAY"
+    "payee_new": 0,
+    "transaction_type": "pay"
   }'
 ```
 
-## Step 8: Access Your Dashboard
+## 💰 Free Tier Limits
 
-Visit: `https://your-app-name.onrender.com/pay`
+**What you get:**
+- **$5 credit/month** - Usually enough for 1-2 small services
+- **512MB RAM** - Sufficient for your ML models
+- **1GB storage** - For database and files
+- **100GB bandwidth** - Plenty for API calls
 
-This will show your payment UI.
+**What happens when you exceed:**
+- Railway will notify you
+- Service continues running
+- You can upgrade or optimize usage
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Issue: Models Not Found
 
-**Error**: `FileNotFoundError: [Errno 2] No such file or directory: '../models/...'`
+**Error**: `FileNotFoundError: [Errno 2] No such file or directory`
 
-**Solution**: 
-- Ensure models are in `server/models/` directory
-- Check that `MODEL_DIR` environment variable is set correctly
-- Verify models are committed to Git (not in .gitignore)
+**Solution:**
+1. Ensure models are committed: `git add server/models/*.pkl`
+2. Check `MODEL_DIR` environment variable is set to `./server/models`
+3. Verify models are in the repository (check GitHub)
 
 ### Issue: Database Connection Failed
 
 **Error**: `OperationalError: could not connect to server`
 
-**Solution**:
-- Verify `DATABASE_URL` is set correctly
-- Check PostgreSQL service is running
-- Ensure database URL uses `postgresql://` (not `postgres://`)
+**Solution:**
+1. Verify PostgreSQL service is running in Railway
+2. Check `DATABASE_URL` is set (should be automatic)
+3. Restart your service after creating database
 
 ### Issue: Build Fails
 
 **Error**: `ERROR: Could not find a version that satisfies the requirement...`
 
-**Solution**:
-- Check `requirements.txt` for version conflicts
-- Try updating package versions
-- Check Python version compatibility
+**Solution:**
+1. Check `requirements.txt` for version conflicts
+2. Try updating package versions
+3. Check build logs for specific error
 
-### Issue: App Crashes on Startup
+### Issue: Service Crashes
 
-**Error**: Application crashes immediately after deployment
+**Error**: Application crashes on startup
 
-**Solution**:
-- Check build logs for errors
-- Verify all dependencies are in `requirements.txt`
-- Ensure start command is correct: `cd server && uvicorn app:app --host 0.0.0.0 --port $PORT`
+**Solution:**
+1. Check logs in Railway dashboard
+2. Verify start command is correct
+3. Ensure all dependencies are in `requirements.txt`
+4. Check Python version compatibility
 
-### Issue: Slow Cold Starts
+## 📊 Monitoring
 
-**Problem**: First request takes 30+ seconds
+Railway provides:
+- **Real-time logs** - View in dashboard
+- **Metrics** - CPU, memory, network usage
+- **Deployment history** - See all deployments
+- **Environment variables** - Manage in dashboard
 
-**Solution**:
-- This is normal on free tier (spins down after inactivity)
-- Upgrade to paid plan for always-on service
-- Consider adding a health check ping service
+## 🔄 Automatic Deployments
 
-## Free Tier Limitations
+Railway automatically deploys when you:
+- Push to main branch
+- Merge pull requests
+- Manually trigger deployment
 
-- **Spins down after 15 minutes of inactivity** - First request after spin-down takes ~30 seconds
-- **750 hours/month** - Enough for most projects
-- **512MB RAM** - Should be sufficient for your ML models
-- **Limited CPU** - May be slower for heavy ML inference
+**To disable auto-deploy:**
+- Go to service → Settings → Source
+- Toggle "Auto Deploy"
 
-## Upgrading to Paid Plan
+## 🎨 Custom Domain (Optional)
 
-If you need:
-- Always-on service (no spin-down)
-- More RAM/CPU
-- Better performance
+1. Go to service → Settings → Networking
+2. Click "Generate Domain" or "Add Custom Domain"
+3. Follow instructions to configure DNS
 
-Upgrade to **Starter Plan** ($7/month) or higher.
+## 📝 Next Steps
 
-## Next Steps
+1. **Set up monitoring** - Use Railway's built-in metrics
+2. **Configure backups** - Railway handles PostgreSQL backups automatically
+3. **Add custom domain** - For production use
+4. **Set up alerts** - Get notified of issues
 
-1. **Set up custom domain** (optional)
-2. **Add monitoring** (Render provides basic logs)
-3. **Set up CI/CD** (automatic deployments on git push)
-4. **Configure backups** for PostgreSQL database
+## 🆘 Need Help?
 
-## Support
-
-- Render Docs: https://render.com/docs
-- Render Community: https://community.render.com
-- Check your service logs in Render dashboard for detailed error messages
+- **Railway Docs**: https://docs.railway.app
+- **Railway Discord**: https://discord.gg/railway
+- **Check logs** in Railway dashboard for detailed errors
 
 ---
 
-**Congratulations! 🎉 Your UPI Fraud Detection API is now live on Render!**
+**Congratulations! 🎉 Your UPI Fraud Detection API is now live on Railway!**
 

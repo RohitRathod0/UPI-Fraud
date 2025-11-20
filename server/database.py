@@ -11,10 +11,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Support both SQLite (local) and PostgreSQL (production/Render)
+# Support both SQLite (local) and PostgreSQL (production)
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./upi_fraud_detection.db')
 
-# Handle PostgreSQL connection string format from Render
+# Handle PostgreSQL connection string format (Railway, Render, etc.)
 if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
