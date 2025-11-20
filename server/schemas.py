@@ -27,6 +27,8 @@ class FraudCheckResponse(BaseModel):
     reasons: List[str]
     subscores: Dict[str, float]
     processing_time_ms: Optional[int] = None
+    risk_breakdown: Optional[Dict[str, Any]] = None  # Detailed risk analysis
+    feature_importance: Optional[List[Dict[str, Any]]] = None  # Feature importance scores
 
 
 # -----------------------------

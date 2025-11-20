@@ -225,10 +225,29 @@ async def score_transaction(request: TransactionRequest, db: Session = Depends(g
             action = "HUMAN_REVIEW"
             print(f"⚠️  Flagged for human review (Priority: {hitl_result['priority']})")
 
-        # Explanations
-        reasons = agg.get('reasons', [])
-        # If you prefer ExplainerAgent, merge:
-        # reasons = explainer_agent.generate_explanation(trust_score, detector_results, action)
+        # Enhanced explanations with feature importance
+        transaction_data = {
+            'amount': request.amount,
+            'payee_new': request.payee_new,
+            'transaction_type': request.transaction_type
+        }
+        
+        reasons = explainer_agent.generate_explanation(
+            trust_score=trust_score,
+            detector_results=detector_results,
+            action=action,
+            subscores=subs,
+            transaction_data=transaction_data
+        )
+        
+        # Generate detailed risk breakdown for visualization
+        detailed_report = explainer_agent.generate_detailed_report(
+            trust_score=trust_score,
+            detector_results=detector_results,
+            action=action,
+            subscores=subs,
+            transaction_data=transaction_data
+        )
 
         processing_time = int((time.time() - t0) * 1000)
 
@@ -246,6 +265,8 @@ async def score_transaction(request: TransactionRequest, db: Session = Depends(g
                 'collect':  round(subs['collect'], 3),
                 'malware':  round(subs['malware'], 3)
             },
+            risk_breakdown=detailed_report,
+            feature_importance=detailed_report.get('feature_importance', []),
             processing_time_ms=processing_time
         )
 
