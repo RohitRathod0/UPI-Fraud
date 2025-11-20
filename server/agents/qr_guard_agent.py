@@ -10,7 +10,7 @@ import asyncio
 
 
 class QuishingAgent:
-    def __init__(self, model_path: str = '../models/quishing_detector.pkl'):
+    def __init__(self, model_path: str = '../models/qr_detector.pkl'):
         self.model_path = model_path
         self.model = None
         self.loaded = False

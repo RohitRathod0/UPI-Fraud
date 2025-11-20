@@ -230,44 +230,105 @@ if 'agents' not in st.session_state:
 
 @st.cache_resource
 def load_models():
-    """Load ML models (cached) - handles errors gracefully"""
+    """Load ML models (cached) - handles errors gracefully with better pickle handling"""
+    import pickle
+    import sys
+    
     try:
         # Determine model directory
         model_dir = server_dir / "models"
         if not model_dir.exists():
             model_dir = Path("server/models")
         
-        # Initialize agents with error handling
+        # Check if models exist
+        model_files = {
+            'phishing': model_dir / 'phishing_detector.pkl',
+            'quishing': model_dir / 'qr_detector.pkl',
+            'collect': model_dir / 'collect_detector.pkl',
+            'malware': model_dir / 'malware_detector.pkl'
+        }
+        
+        # Verify all model files exist
+        missing = [name for name, path in model_files.items() if not path.exists()]
+        if missing:
+            print(f"Warning: Missing model files: {missing}")
+        
+        # Initialize agents with correct paths
         agents = {
-            'phishing': PhishingAgent(model_path=str(model_dir / 'phishing_detector.pkl')),
-            'quishing': QuishingAgent(model_path=str(model_dir / 'qr_detector.pkl')),
-            'collect': CollectRequestAgent(model_path=str(model_dir / 'collect_detector.pkl')),
-            'malware': MalwareAgent(model_path=str(model_dir / 'malware_detector.pkl')),
+            'phishing': PhishingAgent(model_path=str(model_files['phishing'])),
+            'quishing': QuishingAgent(model_path=str(model_files['quishing'])),
+            'collect': CollectRequestAgent(model_path=str(model_files['collect'])),
+            'malware': MalwareAgent(model_path=str(model_files['malware'])),
             'trust': TrustScoreAgent(),
             'explainer': ExplainerAgent(),
             'hitl': HITLManagerAgent()
         }
         
-        # Load models with error handling
+        # Load models with enhanced error handling
         loaded_count = 0
         model_status = {}
+        model_errors = {}
+        
         for name, agent in [('phishing', agents['phishing']), ('quishing', agents['quishing']), 
                            ('collect', agents['collect']), ('malware', agents['malware'])]:
             try:
-                agent.load_model()
-                if agent.is_loaded():
+                # Try loading the model
+                if hasattr(agent, 'load_model'):
+                    agent.load_model()
+                
+                # Check if loaded
+                if hasattr(agent, 'is_loaded') and agent.is_loaded():
                     loaded_count += 1
                     model_status[name] = True
+                    model_errors[name] = None
                 else:
-                    model_status[name] = False
+                    # Try direct pickle load as fallback
+                    try:
+                        model_path = model_files[name]
+                        if model_path.exists():
+                            with open(model_path, 'rb') as f:
+                                # Try different pickle protocols
+                                try:
+                                    agent.model = pickle.load(f)
+                                    agent.loaded = True
+                                    loaded_count += 1
+                                    model_status[name] = True
+                                    model_errors[name] = None
+                                except Exception as e1:
+                                    # Try with encoding
+                                    f.seek(0)
+                                    try:
+                                        agent.model = pickle.load(f, encoding='latin1')
+                                        agent.loaded = True
+                                        loaded_count += 1
+                                        model_status[name] = True
+                                        model_errors[name] = None
+                                    except Exception as e2:
+                                        model_status[name] = False
+                                        model_errors[name] = str(e2)
+                        else:
+                            model_status[name] = False
+                            model_errors[name] = f"File not found: {model_path}"
+                    except Exception as e:
+                        model_status[name] = False
+                        model_errors[name] = str(e)
             except Exception as e:
                 model_status[name] = False
+                model_errors[name] = str(e)
+                print(f"Error loading {name} model: {e}")
+        
+        # Store errors for debugging
+        if any(model_errors.values()):
+            print("Model loading errors:", model_errors)
         
         if loaded_count == 0:
             return None, False, {}
         
         return agents, True, model_status
     except Exception as e:
+        print(f"Critical error in load_models: {e}")
+        import traceback
+        traceback.print_exc()
         return None, False, {}
 
 # Load models

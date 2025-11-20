@@ -10,7 +10,7 @@ import asyncio
 
 
 class CollectRequestAgent:
-    def __init__(self, model_path: str = '../models/collect_request_detector.pkl'):
+    def __init__(self, model_path: str = '../models/collect_detector.pkl'):
         self.model_path = model_path
         self.model = None
         self.loaded = False
