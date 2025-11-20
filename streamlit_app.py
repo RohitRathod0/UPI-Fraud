@@ -40,11 +40,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Premium CSS with better fonts
+# Premium CSS matching HTML design
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
     
+    /* Global Styles */
+    .stApp {
+        background: linear-gradient(180deg, #0b1224 0%, #0a0f1f 100%);
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Main Header */
     .main-header {
         font-family: 'Space Grotesk', sans-serif;
         font-size: 3.5rem;
@@ -55,6 +62,7 @@ st.markdown("""
         background-clip: text;
         margin-bottom: 0.3rem;
         letter-spacing: -0.02em;
+        line-height: 1.1;
     }
     
     .tagline {
@@ -64,8 +72,10 @@ st.markdown("""
         font-weight: 400;
         margin-bottom: 2rem;
         letter-spacing: -0.01em;
+        line-height: 1.6;
     }
     
+    /* Section Headers */
     .section-header {
         font-family: 'Space Grotesk', sans-serif;
         font-size: 1.5rem;
@@ -75,15 +85,81 @@ st.markdown("""
         letter-spacing: -0.01em;
     }
     
-    .metric-label {
+    /* Buttons */
+    .stButton > button {
         font-family: 'Inter', sans-serif;
-        font-size: 0.9rem;
-        color: #94a3b8;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s;
+        letter-spacing: -0.2px;
+        padding: 0.5rem 1.5rem;
     }
     
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #5b6ee1, #7c4bd8);
+        border: none;
+        color: #fff;
+        box-shadow: 0 4px 16px rgba(91, 110, 225, 0.3);
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(91, 110, 225, 0.4);
+    }
+    
+    .stButton > button[kind="secondary"] {
+        background: #0b132a;
+        border: 1px solid #1e293b;
+        color: #e2e8f0;
+    }
+    
+    .stButton > button[kind="secondary"]:hover {
+        background: #111a33;
+        border-color: #5b6ee1;
+    }
+    
+    /* Form Elements */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > select {
+        font-family: 'Inter', sans-serif;
+        background: #0b132a;
+        border: 1px solid #1e293b;
+        color: #e2e8f0;
+        border-radius: 12px;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: #6080ff;
+        box-shadow: 0 0 0 4px rgba(96, 128, 255, 0.18);
+    }
+    
+    /* Labels */
+    label {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+    }
+    
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        color: #94a3b8;
+    }
+    
+    /* Risk Colors */
     .risk-high {
         color: #ef4444;
         font-weight: 700;
@@ -97,32 +173,51 @@ st.markdown("""
         font-weight: 700;
     }
     
-    .stButton>button {
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
-        border-radius: 10px;
-        transition: all 0.3s;
-    }
-    
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(91, 110, 225, 0.3);
-    }
-    
-    .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .stSelectbox>div>div>select {
-        font-family: 'Inter', sans-serif;
-    }
-    
+    /* Info Boxes */
     .info-box {
         background: linear-gradient(135deg, rgba(91, 110, 225, 0.1), rgba(124, 75, 216, 0.1));
         border: 1px solid rgba(91, 110, 225, 0.2);
         border-radius: 12px;
         padding: 1.5rem;
         margin: 1rem 0;
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f162e, #0d1326);
+        border-right: 1px solid #1e293b;
+    }
+    
+    /* Expander */
+    .streamlit-expanderHeader {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+    
+    /* Success/Info/Error Messages */
+    .stSuccess {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 10px;
+    }
+    
+    .stInfo {
+        background: rgba(96, 165, 250, 0.1);
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 10px;
+    }
+    
+    .stWarning {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 10px;
+    }
+    
+    .stError {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -167,7 +262,6 @@ def load_models():
                     model_status[name] = False
             except Exception as e:
                 model_status[name] = False
-                # Agent will use rule-based fallback
         
         if loaded_count == 0:
             return None, False, {}
@@ -185,32 +279,32 @@ if not st.session_state.models_loaded:
             st.session_state.models_loaded = True
             st.session_state.model_status = model_status
         else:
-            st.error("❌ Failed to load models. Please check model files.")
+            st.error("Failed to load models. Please check model files.")
             st.stop()
 
 agents = st.session_state.agents
 model_status = st.session_state.get('model_status', {})
 
-# Header with impressive tagline
+# Header with impressive tagline (no emojis)
 st.markdown('<h1 class="main-header">SecureUPI</h1>', unsafe_allow_html=True)
 st.markdown('<p class="tagline">Enterprise-Grade AI Fraud Detection • Protecting Millions of Transactions with Advanced Machine Learning</p>', unsafe_allow_html=True)
 st.markdown("---")
 
 # Sidebar
 with st.sidebar:
-    st.markdown('<h2 class="section-header">⚙️ Quick Test</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-header">Quick Test</h2>', unsafe_allow_html=True)
     st.markdown("**Select a scenario to test fraud detection:**")
     
-    if st.button("🟢 Safe Transaction", use_container_width=True, type="secondary"):
+    if st.button("Safe Transaction", use_container_width=True, type="secondary"):
         st.session_state.preset = "safe"
         st.rerun()
-    if st.button("🔴 Phishing Attack", use_container_width=True, type="secondary"):
+    if st.button("Phishing Attack", use_container_width=True, type="secondary"):
         st.session_state.preset = "phishing"
         st.rerun()
-    if st.button("🟡 QR Code Scam", use_container_width=True, type="secondary"):
+    if st.button("QR Code Scam", use_container_width=True, type="secondary"):
         st.session_state.preset = "qr"
         st.rerun()
-    if st.button("🟠 Collect Fraud", use_container_width=True, type="secondary"):
+    if st.button("Collect Fraud", use_container_width=True, type="secondary"):
         st.session_state.preset = "collect"
         st.rerun()
     
@@ -218,11 +312,12 @@ with st.sidebar:
     st.markdown('<h3 class="section-header">System Status</h3>', unsafe_allow_html=True)
     
     # Model status
-    status_colors = {True: "✅", False: "⚠️"}
     for name, status in model_status.items():
-        st.write(f"{status_colors.get(status, '❌')} {name.title()}: {'Loaded' if status else 'Rule-based'}")
+        status_text = "Loaded" if status else "Rule-based"
+        status_icon = "✓" if status else "⚠"
+        st.write(f"{status_icon} {name.title()}: {status_text}")
     
-    st.success("🔄 Ready for Analysis")
+    st.success("Ready for Analysis")
 
 # Initialize form values
 default_payer = "user@paytm"
@@ -272,7 +367,7 @@ if 'preset' in st.session_state and st.session_state.preset:
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.markdown('<h2 class="section-header">📝 Transaction Details</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-header">Transaction Details</h2>', unsafe_allow_html=True)
     
     # Transaction form
     with st.form("transaction_form", clear_on_submit=False):
@@ -285,7 +380,7 @@ with col1:
         payee_new = st.selectbox("Is Payee New?", [0, 1], index=default_payee_new, format_func=lambda x: "Yes" if x == 1 else "No", key="new_input")
         message = st.text_area("Transaction Message", value=default_message, help="Transaction note/message", key="message_input", height=100)
         
-        submitted = st.form_submit_button("🔍 Analyze Transaction", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("Analyze Transaction", use_container_width=True, type="primary")
 
 # Process transaction
 if submitted:
@@ -303,7 +398,7 @@ if submitted:
         'avg_transaction_amount_30d': 1000
     })()
     
-    with st.spinner("🔍 Analyzing transaction with AI agents..."):
+    with st.spinner("Analyzing transaction with AI agents..."):
         try:
             # Run agents (async)
             async def analyze():
@@ -402,22 +497,15 @@ if 'result' in st.session_state:
     result = st.session_state.result
     
     with col2:
-        st.markdown('<h2 class="section-header">📊 Analysis Results</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="section-header">Analysis Results</h2>', unsafe_allow_html=True)
         
         # Trust score and action
         col_score, col_action = st.columns(2)
         with col_score:
-            risk_class = "risk-low" if result['trust_score'] >= 65 else "risk-medium" if result['trust_score'] >= 45 else "risk-high"
             st.metric("Trust Score", f"{result['trust_score']}/100", delta=None)
         with col_action:
-            action_colors = {
-                "ALLOW": "🟢",
-                "WARN": "🟡",
-                "BLOCK": "🔴",
-                "HUMAN_REVIEW": "🟠"
-            }
-            action_icon = action_colors.get(result['action'], '⚪')
-            st.metric("Action", f"{action_icon} {result['action']}")
+            action_text = result['action']
+            st.metric("Action", action_text)
         
         st.markdown("---")
         
@@ -445,9 +533,9 @@ if 'result' in st.session_state:
             showlegend=False,
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(family='Inter', color='#e2e8f0'),
-            xaxis=dict(gridcolor='rgba(148, 163, 184, 0.1)'),
-            yaxis=dict(gridcolor='rgba(148, 163, 184, 0.1)')
+            font=dict(family='Inter', color='#e2e8f0', size=12),
+            xaxis=dict(gridcolor='rgba(148, 163, 184, 0.1)', title_font=dict(family='Inter')),
+            yaxis=dict(gridcolor='rgba(148, 163, 184, 0.1)', title_font=dict(family='Inter'))
         )
         st.plotly_chart(fig_bar, use_container_width=True)
         
@@ -466,7 +554,7 @@ if 'result' in st.session_state:
                         height=300,
                         plot_bgcolor='rgba(0,0,0,0)',
                         paper_bgcolor='rgba(0,0,0,0)',
-                        font=dict(family='Inter', color='#e2e8f0'),
+                        font=dict(family='Inter', color='#e2e8f0', size=12),
                         showlegend=True
                     )
                     st.plotly_chart(fig_pie, use_container_width=True)
@@ -474,14 +562,14 @@ if 'result' in st.session_state:
                     pass
         
         # Detailed explanations
-        st.markdown('<h3 class="section-header">📋 Detailed Analysis</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="section-header">Detailed Analysis</h3>', unsafe_allow_html=True)
         with st.container():
             for reason in result['reasons']:
                 st.write(f"• {reason}")
         
         # Risk factors
         if result['indicators']:
-            st.markdown('<h3 class="section-header">🚨 Risk Indicators</h3>', unsafe_allow_html=True)
+            st.markdown('<h3 class="section-header">Risk Indicators</h3>', unsafe_allow_html=True)
             for fraud_type, inds in result['indicators'].items():
                 if inds:
                     with st.expander(f"{fraud_type.title()} Indicators"):
@@ -489,7 +577,7 @@ if 'result' in st.session_state:
                             st.write(f"• {ind}")
         
         # Clear result button
-        if st.button("🔄 Analyze New Transaction", use_container_width=True, type="secondary"):
+        if st.button("Analyze New Transaction", use_container_width=True, type="secondary"):
             if 'result' in st.session_state:
                 del st.session_state.result
             st.rerun()
@@ -497,15 +585,15 @@ if 'result' in st.session_state:
 else:
     with col2:
         st.markdown('<div class="info-box">', unsafe_allow_html=True)
-        st.info("👈 Fill in transaction details and click 'Analyze Transaction' to get fraud detection results")
+        st.info("Fill in transaction details and click 'Analyze Transaction' to get fraud detection results")
         st.markdown('</div>', unsafe_allow_html=True)
         
         # Show model status
         st.markdown('<h3 class="section-header">System Information</h3>', unsafe_allow_html=True)
         loaded_count = sum(1 for v in model_status.values() if v)
-        st.success(f"✅ {loaded_count}/4 ML Models Loaded")
-        st.success("✅ 7 AI Agents Active")
-        st.info("🔄 Ready to analyze transactions")
+        st.success(f"{loaded_count}/4 ML Models Loaded")
+        st.success("7 AI Agents Active")
+        st.info("Ready to analyze transactions")
 
 # Footer
 st.markdown("---")
