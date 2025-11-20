@@ -295,32 +295,47 @@ def load_models():
             error_msg = None
             
             try:
-                # Method 1: Use agent's load_model method
+                # Method 1: Use agent's load_model method (now has multiple fallbacks)
                 agent.model_path = str(model_path.absolute())
                 agent.load_model()
                 if agent.is_loaded():
                     success = True
-                    print(f"✓ {name.title()}: Loaded via agent method")
+                    print(f"✓ {name.title()}: Loaded successfully")
             except Exception as e1:
                 error_msg = f"Agent method failed: {str(e1)[:50]}"
                 try:
-                    # Method 2: Direct pickle load
-                    with open(model_path, 'rb') as f:
-                        agent.model = pickle.load(f)
-                        agent.loaded = True
-                        success = True
-                        print(f"✓ {name.title()}: Loaded via direct pickle")
+                    # Method 2: Try joblib
+                    import joblib
+                    agent.model = joblib.load(model_path)
+                    agent.loaded = True
+                    success = True
+                    print(f"✓ {name.title()}: Loaded via joblib")
                 except Exception as e2:
-                    error_msg = f"Direct load failed: {str(e2)[:50]}"
                     try:
-                        # Method 3: Try with latin1 encoding
+                        # Method 3: Direct pickle load
                         with open(model_path, 'rb') as f:
-                            agent.model = pickle.load(f, encoding='latin1')
+                            agent.model = pickle.load(f)
                             agent.loaded = True
                             success = True
-                            print(f"✓ {name.title()}: Loaded via latin1 encoding")
+                            print(f"✓ {name.title()}: Loaded via direct pickle")
                     except Exception as e3:
-                        error_msg = f"All methods failed: {str(e3)[:50]}"
+                        try:
+                            # Method 4: Try with latin1 encoding
+                            with open(model_path, 'rb') as f:
+                                agent.model = pickle.load(f, encoding='latin1')
+                                agent.loaded = True
+                                success = True
+                                print(f"✓ {name.title()}: Loaded via latin1 encoding")
+                        except Exception as e4:
+                            try:
+                                # Method 5: Try with errors='ignore'
+                                with open(model_path, 'rb') as f:
+                                    agent.model = pickle.load(f, encoding='latin1', errors='ignore')
+                                    agent.loaded = True
+                                    success = True
+                                    print(f"✓ {name.title()}: Loaded via latin1 (ignore errors)")
+                            except Exception as e5:
+                                error_msg = f"All methods failed. Last error: {str(e5)[:50]}"
             
             if success:
                 loaded_count += 1

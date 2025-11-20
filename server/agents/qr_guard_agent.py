@@ -17,11 +17,43 @@ class QuishingAgent:
         self.load_model()
 
     def load_model(self):
+        import joblib
         try:
+            # Try joblib first (common for sklearn models)
+            try:
+                self.model = joblib.load(self.model_path)
+                self.loaded = True
+                print("QuishingAgent: Model loaded successfully via joblib")
+                return
+            except:
+                pass
+            
+            # Try pickle with different protocols
             with open(self.model_path, 'rb') as f:
-                self.model = pickle.load(f)
-            self.loaded = True
-            print("QuishingAgent: Model loaded successfully")
+                try:
+                    # Try standard pickle
+                    self.model = pickle.load(f)
+                    self.loaded = True
+                    print("QuishingAgent: Model loaded successfully via pickle")
+                    return
+                except Exception as e1:
+                    # Try with latin1 encoding (Python 2/3 compatibility)
+                    f.seek(0)
+                    try:
+                        self.model = pickle.load(f, encoding='latin1')
+                        self.loaded = True
+                        print("QuishingAgent: Model loaded successfully via pickle (latin1)")
+                        return
+                    except Exception as e2:
+                        # Try with errors='ignore'
+                        f.seek(0)
+                        try:
+                            self.model = pickle.load(f, encoding='latin1', errors='ignore')
+                            self.loaded = True
+                            print("QuishingAgent: Model loaded successfully via pickle (latin1, ignore errors)")
+                            return
+                        except Exception as e3:
+                            raise e1
         except Exception as e:
             print(f"QuishingAgent: Could not load model - {e}")
             self.loaded = False
