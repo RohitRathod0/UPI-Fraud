@@ -230,17 +230,31 @@ if 'agents' not in st.session_state:
 
 @st.cache_resource
 def load_models():
-    """Load ML models (cached) - handles errors gracefully with better pickle handling"""
+    """Load ML models (cached) - ensures all 4 models load correctly"""
     import pickle
-    import sys
+    import os
     
     try:
-        # Determine model directory
-        model_dir = server_dir / "models"
-        if not model_dir.exists():
-            model_dir = Path("server/models")
+        # Determine model directory - try multiple paths
+        possible_paths = [
+            server_dir / "models",
+            Path("server/models"),
+            Path(__file__).parent / "server" / "models"
+        ]
         
-        # Check if models exist
+        model_dir = None
+        for path in possible_paths:
+            if path.exists() and (path / 'phishing_detector.pkl').exists():
+                model_dir = path
+                break
+        
+        if model_dir is None:
+            print("ERROR: Could not find model directory")
+            return None, False, {}
+        
+        print(f"Loading models from: {model_dir}")
+        
+        # Model file paths
         model_files = {
             'phishing': model_dir / 'phishing_detector.pkl',
             'quishing': model_dir / 'qr_detector.pkl',
@@ -249,84 +263,88 @@ def load_models():
         }
         
         # Verify all model files exist
-        missing = [name for name, path in model_files.items() if not path.exists()]
-        if missing:
-            print(f"Warning: Missing model files: {missing}")
+        missing = []
+        for name, path in model_files.items():
+            if not path.exists():
+                missing.append(f"{name}: {path}")
         
-        # Initialize agents with correct paths
+        if missing:
+            print(f"ERROR: Missing model files:\n" + "\n".join(missing))
+            return None, False, {}
+        
+        # Initialize agents with absolute paths
         agents = {
-            'phishing': PhishingAgent(model_path=str(model_files['phishing'])),
-            'quishing': QuishingAgent(model_path=str(model_files['quishing'])),
-            'collect': CollectRequestAgent(model_path=str(model_files['collect'])),
-            'malware': MalwareAgent(model_path=str(model_files['malware'])),
+            'phishing': PhishingAgent(model_path=str(model_files['phishing'].absolute())),
+            'quishing': QuishingAgent(model_path=str(model_files['quishing'].absolute())),
+            'collect': CollectRequestAgent(model_path=str(model_files['collect'].absolute())),
+            'malware': MalwareAgent(model_path=str(model_files['malware'].absolute())),
             'trust': TrustScoreAgent(),
             'explainer': ExplainerAgent(),
             'hitl': HITLManagerAgent()
         }
         
-        # Load models with enhanced error handling
+        # Force reload models with explicit loading
         loaded_count = 0
         model_status = {}
         model_errors = {}
         
         for name, agent in [('phishing', agents['phishing']), ('quishing', agents['quishing']), 
                            ('collect', agents['collect']), ('malware', agents['malware'])]:
+            model_path = model_files[name]
+            success = False
+            error_msg = None
+            
             try:
-                # Try loading the model
-                if hasattr(agent, 'load_model'):
-                    agent.load_model()
-                
-                # Check if loaded
-                if hasattr(agent, 'is_loaded') and agent.is_loaded():
-                    loaded_count += 1
-                    model_status[name] = True
-                    model_errors[name] = None
-                else:
-                    # Try direct pickle load as fallback
+                # Method 1: Use agent's load_model method
+                agent.model_path = str(model_path.absolute())
+                agent.load_model()
+                if agent.is_loaded():
+                    success = True
+                    print(f"✓ {name.title()}: Loaded via agent method")
+            except Exception as e1:
+                error_msg = f"Agent method failed: {str(e1)[:50]}"
+                try:
+                    # Method 2: Direct pickle load
+                    with open(model_path, 'rb') as f:
+                        agent.model = pickle.load(f)
+                        agent.loaded = True
+                        success = True
+                        print(f"✓ {name.title()}: Loaded via direct pickle")
+                except Exception as e2:
+                    error_msg = f"Direct load failed: {str(e2)[:50]}"
                     try:
-                        model_path = model_files[name]
-                        if model_path.exists():
-                            with open(model_path, 'rb') as f:
-                                # Try different pickle protocols
-                                try:
-                                    agent.model = pickle.load(f)
-                                    agent.loaded = True
-                                    loaded_count += 1
-                                    model_status[name] = True
-                                    model_errors[name] = None
-                                except Exception as e1:
-                                    # Try with encoding
-                                    f.seek(0)
-                                    try:
-                                        agent.model = pickle.load(f, encoding='latin1')
-                                        agent.loaded = True
-                                        loaded_count += 1
-                                        model_status[name] = True
-                                        model_errors[name] = None
-                                    except Exception as e2:
-                                        model_status[name] = False
-                                        model_errors[name] = str(e2)
-                        else:
-                            model_status[name] = False
-                            model_errors[name] = f"File not found: {model_path}"
-                    except Exception as e:
-                        model_status[name] = False
-                        model_errors[name] = str(e)
-            except Exception as e:
+                        # Method 3: Try with latin1 encoding
+                        with open(model_path, 'rb') as f:
+                            agent.model = pickle.load(f, encoding='latin1')
+                            agent.loaded = True
+                            success = True
+                            print(f"✓ {name.title()}: Loaded via latin1 encoding")
+                    except Exception as e3:
+                        error_msg = f"All methods failed: {str(e3)[:50]}"
+            
+            if success:
+                loaded_count += 1
+                model_status[name] = True
+                model_errors[name] = None
+            else:
                 model_status[name] = False
-                model_errors[name] = str(e)
-                print(f"Error loading {name} model: {e}")
+                model_errors[name] = error_msg
+                print(f"✗ {name.title()}: FAILED - {error_msg}")
         
-        # Store errors for debugging
+        # Print summary
+        print(f"\nModel Loading Summary: {loaded_count}/4 models loaded")
         if any(model_errors.values()):
-            print("Model loading errors:", model_errors)
+            print("Errors:")
+            for name, err in model_errors.items():
+                if err:
+                    print(f"  - {name}: {err}")
         
         if loaded_count == 0:
             return None, False, {}
         
         return agents, True, model_status
     except Exception as e:
-        print(f"Critical error in load_models: {e}")
+        print(f"CRITICAL ERROR in load_models: {e}")
         import traceback
         traceback.print_exc()
         return None, False, {}
