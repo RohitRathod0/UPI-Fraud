@@ -15,8 +15,9 @@ build/
 *.pkl
 *.h5
 *.joblib
-# Exception: Allow models in server/models/ for deployment
+# Exception: Allow models in server/models/ and models/ for deployment
 !server/models/*.pkl
+!models/*.pkl
 
 # Data files
 *.csv

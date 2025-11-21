@@ -1,0 +1,177 @@
+{
+    "system_name": "SecureUPI Messaging Integration",
+    "version": "1.0",
+    "description": "Automatically detects fraud in UPI payment requests received via messaging apps (SMS, WhatsApp, Telegram)",
+    
+    "data_extraction": {
+      "description": "NLP/Regex rules to extract structured data from incoming messages",
+      "rules": [
+        {
+          "field": "payee_vpa",
+          "patterns": [
+            "([a-zA-Z0-9._-]+@[a-zA-Z]+)",
+            "(?i)upi\\s*id[:\\s]+([a-zA-Z0-9._-]+@[a-zA-Z]+)",
+            "(?i)pay\\s+to[:\\s]+([a-zA-Z0-9._-]+@[a-zA-Z]+)"
+          ],
+          "required": true
+        },
+        {
+          "field": "mobile_number",
+          "patterns": [
+            "(?:phone|mobile|contact|number)[:\\s]*(\\d{10})",
+            "\\b([6-9]\\d{9})\\b"
+          ],
+          "required": false
+        },
+        {
+          "field": "amount",
+          "patterns": [
+            "(?i)(?:rs\\.?|₹|inr)\\s*(\\d[\\d,]*)",
+            "(?i)amount[:\\s]*(\\d[\\d,]*)",
+            "(?i)pay\\s*(\\d[\\d,]+)"
+          ],
+          "required": true,
+          "transform": "remove_commas_and_cast_to_float"
+        },
+        {
+          "field": "message",
+          "patterns": [".*"],
+          "description": "Full text of the incoming message for fraud analysis",
+          "required": true
+        },
+        {
+          "field": "transaction_type",
+          "patterns": [
+            "(?i)collect request",
+            "(?i)scan qr",
+            "(?i)payment request"
+          ],
+          "mapping": {
+            "collect request": "collect",
+            "scan qr": "qr_pay",
+            "payment request": "collect",
+            "default": "pay"
+          },
+          "required": false
+        }
+      ]
+    },
+    
+    "api_integration": {
+      "endpoint": "http://127.0.0.1:8000/api/v1/score_request",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "request_schema": {
+        "transaction_id": "MSG-{timestamp}",
+        "payer_vpa": "{user_logged_in_upi}",
+        "payee_vpa": "{extracted.payee_vpa}",
+        "mobile_number": "{extracted.mobile_number}",
+        "amount": "{extracted.amount}",
+        "message": "{extracted.message}",
+        "transaction_type": "{extracted.transaction_type}",
+        "payee_new": 1
+      },
+      "response_schema": {
+        "trust_score": "int",
+        "action": "string",
+        "reasons": "array",
+        "subscores": "object"
+      }
+    },
+    
+    "ui_alerts": {
+      "description": "How to display fraud detection results in the messaging app",
+      "alert_templates": {
+        "BLOCK": {
+          "color": "#ef4444",
+          "icon": "⛔",
+          "title": "Transaction Blocked",
+          "message": "Our AI detected high fraud risk. Do not proceed.",
+          "show_reasons": true,
+          "actions": ["View Details", "Report"]
+        },
+        "HUMAN_REVIEW": {
+          "color": "#f59e0b",
+          "icon": "⚠️",
+          "title": "Review Required",
+          "message": "This transaction is suspicious. Verify details carefully.",
+          "show_reasons": true,
+          "actions": ["Proceed with Caution", "Decline"]
+        },
+        "WARN": {
+          "color": "#f59e0b",
+          "icon": "⚠️",
+          "title": "Warning",
+          "message": "Medium risk detected. Please review the details below.",
+          "show_reasons": true,
+          "actions": ["Proceed Anyway", "Decline"]
+        },
+        "ALLOW": {
+          "color": "#22c55e",
+          "icon": "✓",
+          "title": "Transaction Safe",
+          "message": "No fraud detected. You can proceed confidently.",
+          "show_reasons": false,
+          "actions": ["Proceed", "Cancel"]
+        }
+      }
+    },
+    
+    "automation_workflow": {
+      "description": "Step-by-step flow when a message arrives",
+      "steps": [
+        {
+          "step": 1,
+          "name": "Message Received",
+          "description": "User receives SMS/WhatsApp/Telegram message with payment request"
+        },
+        {
+          "step": 2,
+          "name": "Background Parsing",
+          "description": "App extracts UPI ID, amount, phone, message text using regex/NLP",
+          "trigger": "on_message_received",
+          "function": "parse_payment_request"
+        },
+        {
+          "step": 3,
+          "name": "API Call",
+          "description": "Send extracted data to POST /api/v1/score_request",
+          "timeout_ms": 3000,
+          "retry_policy": "exponential_backoff_3x"
+        },
+        {
+          "step": 4,
+          "name": "Display Alert",
+          "description": "Show in-line banner in chat with trust score, action, and reasons",
+          "position": "below_message_bubble"
+        },
+        {
+          "step": 5,
+          "name": "User Decision",
+          "description": "User taps 'Proceed' (opens UPI app) or 'Decline' (marks as spam)",
+          "actions": {
+            "proceed": "open_upi_intent_with_prefilled_data",
+            "decline": "mark_sender_suspicious_and_notify_backend"
+          }
+        }
+      ]
+    },
+    
+    "sample_extracted_payload": {
+      "description": "Example of what gets sent to your fraud API after parsing a message",
+      "example_message": "Hi! Please pay ₹8000 to verify-security@upi for urgent account verification. Contact: 9876543210",
+      "extracted_data": {
+        "transaction_id": "MSG-1699234567890",
+        "payer_vpa": "vikas@paytm",
+        "payee_vpa": "verify-security@upi",
+        "mobile_number": "9876543210",
+        "amount": 8000,
+        "message": "Hi! Please pay ₹8000 to verify-security@upi for urgent account verification. Contact: 9876543210",
+        "transaction_type": "pay",
+        "payee_new": 1
+      }
+    }
+  }
+  

@@ -1,6 +1,6 @@
 # Streamlit Core
-streamlit==1.28.0
-plotly==5.17.0
+streamlit>=1.28.0
+plotly>=5.17.0
 
 # ML Libraries (for model inference)
 scikit-learn>=1.4.0
@@ -11,20 +11,20 @@ numpy>=1.26.0,<2.0
 pandas>=2.1.3
 
 # Data Processing
-python-dotenv==1.0.0
+python-dotenv>=1.0.0
 
 # QR Code Processing (if needed)
-opencv-python==4.8.1.78
-pyzbar==0.1.9
-qrcode==7.4.2
-pillow==10.1.0
+opencv-python-headless>=4.8.0
+pyzbar>=0.1.9
+qrcode>=7.4.2
+pillow>=10.1.0
 
 # Async support
-aiohttp==3.9.1
-requests==2.31.0
+aiohttp>=3.9.0
+requests>=2.31.0
 
 # Database (optional, for future features)
-sqlalchemy==2.0.23
+sqlalchemy>=2.0.23
 
-# Redis (for caching)
-redis==5.0.1
+# Redis (for caching - optional, app works without it)
+redis>=5.0.0

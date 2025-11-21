@@ -1,23 +1,15 @@
-[theme]
-primaryColor = "#5b6ee1"
-backgroundColor = "#0a0f1f"
-secondaryBackgroundColor = "#0f172a"
-textColor = "#e2e8f0"
-font = "Inter, sans-serif"
-
 [server]
 headless = true
 port = 8501
 enableCORS = false
-enableXsrfProtection = false
-maxUploadSize = 200
-maxMessageSize = 200
+enableXsrfProtection = true
 
 [browser]
 gatherUsageStats = false
-serverAddress = "localhost"
-serverPort = 8501
 
-[runner]
-fastReruns = true
-magicEnabled = true
+[theme]
+primaryColor = "#5b6ee1"
+backgroundColor = "#0b1224"
+secondaryBackgroundColor = "#0a0f1f"
+textColor = "#e2e8f0"
+font = "Inter"

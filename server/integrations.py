@@ -15,8 +15,12 @@ from datetime import timedelta
 
 from config import config
 
-# Redis cache for API results
-redis_client = redis.from_url(config.REDIS_URL) if config.REDIS_URL else None
+# Redis cache for API results (optional - gracefully handles missing Redis)
+try:
+    redis_client = redis.from_url(config.REDIS_URL) if config.REDIS_URL else None
+except Exception:
+    redis_client = None
+    print("Redis not available - caching disabled")
 
 class SafeBrowsingAPI:
     """Google Safe Browsing API integration"""

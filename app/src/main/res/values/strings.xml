@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SecureUPI</string>
+    <string name="enable_fraud_detection">Enable Fraud Detection</string>
+    <string name="checking_permissions">Checking permissions...</string>
+</resources>

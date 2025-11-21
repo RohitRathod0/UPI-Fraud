@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Support both SQLite (local) and PostgreSQL (production)
+# For Streamlit Cloud, use SQLite by default (no external DB required)
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./upi_fraud_detection.db')
 
 # Handle PostgreSQL connection string format (Railway, Render, etc.)
@@ -19,11 +20,16 @@ if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
 # Create engine with appropriate connection args
-if "sqlite" in DATABASE_URL:
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-else:
-    # PostgreSQL connection
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
+try:
+    if "sqlite" in DATABASE_URL:
+        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    else:
+        # PostgreSQL connection
+        engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
+except Exception as e:
+    # Fallback to SQLite if connection fails
+    print(f"Database connection failed, using SQLite fallback: {e}")
+    engine = create_engine('sqlite:///./upi_fraud_detection.db', connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

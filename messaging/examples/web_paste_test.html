@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Message Parser Test</title>
+<style>
+body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px;background:#0a0f1f;color:#e2e8f0}
+textarea{width:100%;min-height:120px;padding:12px;border-radius:8px;border:1px solid #1e293b;background:#0b132a;color:#e2e8f0}
+button{padding:12px 20px;border:none;border-radius:8px;background:#5b6ee1;color:#fff;font-weight:700;cursor:pointer}
+.result{margin-top:20px;padding:16px;border-radius:12px;background:#0f172a;border:1px solid #1e293b}
+.fraud-alert{margin-top:16px;padding:16px;border-radius:12px;display:flex;gap:12px;align-items:start}
+.alert-icon{font-size:32px}
+.alert-title{font-weight:800;margin-bottom:4px}
+.alert-score{font-size:13px;opacity:.8}
+.alert-reasons{margin-top:8px;font-size:13px}
+.alert-reasons ul{margin:4px 0;padding-left:20px}
+.alert-btn{margin:8px 4px 0 0;padding:8px 12px;border:none;border-radius:6px;background:#3b4a68;color:#fff;font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>📱 Message Fraud Detector Test</h1>
+<p>Paste a payment request message below and click "Analyze".</p>
+
+<textarea id="msgInput" placeholder="Paste message here, e.g., 'Pay ₹8000 to verify-security@upi for urgent account verification'">URGENT! Pay ₹15000 to verify-security@upi for account verification. Contact: 9876543210</textarea>
+<button onclick="analyze()">Analyze Message</button>
+
+<div class="result" id="result" style="display:none"></div>
+
+<script>
+async function analyze() {
+    const text = document.getElementById('msgInput').value.trim();
+    if (!text) return;
+    
+    // Extract data
+    const extracted = extractPaymentData(text);
+    document.getElementById('result').innerHTML = `
+        <h3>Extracted Data:</h3>
+        <pre>${JSON.stringify(extracted, null, 2)}</pre>
+        <p>Calling fraud API...</p>
+    `;
+    document.getElementById('result').style.display = 'block';
+    
+    // Call API
+    const payload = {
+        transaction_id: 'MSG-' + Date.now(),
+        payer_vpa: 'vikas@paytm',
+        payee_vpa: extracted.payee_vpa,
+        mobile_number: extracted.mobile_number,
+        amount: extracted.amount,
+        message: extracted.message,
+        transaction_type: extracted.transaction_type,
+        payee_new: 1
+    };
+    
+    try {
+        const res = await fetch('http://127.0.0.1:8000/api/v1/score_request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        // Show alert
+        const alertHtml = generateAlert(data);
+        document.getElementById('result').innerHTML = `
+            <h3>Extracted Data:</h3>
+            <pre>${JSON.stringify(extracted, null, 2)}</pre>
+            <h3>Fraud Detection Result:</h3>
+            ${alertHtml}
+        `;
+    } catch (err) {
+        document.getElementById('result').innerHTML += `<p style="color:#ef4444">Error: ${err}</p>`;
+    }
+}
+
+function extractPaymentData(text) {
+    const payee = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z]+)/);
+    const amt = text.match(/(?:rs\.?|₹)\s*(\d[\d,]*)/i);
+    const mob = text.match(/\b([6-9]\d{9})\b/);
+    return {
+        payee_vpa: payee ? payee[1] : null,
+        amount: amt ? parseFloat(amt[1].replace(/,/g, '')) : null,
+        mobile_number: mob ? mob[1] : null,
+        message: text,
+        transaction_type: /collect request/i.test(text) ? 'collect' : 'pay'
+    };
+}
+
+function generateAlert(result) {
+    const templates = {
+        BLOCK: { color: '#ef4444', icon: '⛔', title: 'Transaction Blocked' },
+        HUMAN_REVIEW: { color: '#f59e0b', icon: '⚠️', title: 'Review Required' },
+        WARN: { color: '#f59e0b', icon: '⚠️', title: 'Warning' },
+        ALLOW: { color: '#22c55e', icon: '✓', title: 'Transaction Safe' }
+    };
+    const t = templates[result.action] || templates.WARN;
+    const reasons = result.reasons.map(r => `<li>${r}</li>`).join('');
+    
+    return `
+<div class="fraud-alert" style="border-left:4px solid ${t.color}">
+    <div class="alert-icon">${t.icon}</div>
+    <div>
+        <div class="alert-title">${t.title}</div>
+        <div class="alert-score">Trust Score: ${result.trust_score}</div>
+        <div class="alert-reasons"><ul>${reasons}</ul></div>
+        <button class="alert-btn">View Details</button>
+    </div>
+</div>`;
+}
+</script>
+</body>
+</html>
